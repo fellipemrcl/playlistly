@@ -1,103 +1,211 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useSession, signIn } from "next-auth/react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { Music, Sparkles, Zap, Users, ArrowRight, Play, Heart, Headphones } from "lucide-react"
+import { redirect } from "next/navigation"
+import { motion } from "framer-motion"
+
+export default function LandingPage() {
+  const { data: session, status } = useSession()
+
+  if (session) {
+    redirect("/dashboard")
+  }
+
+  const features = [
+    {
+      icon: <Sparkles className="h-6 w-6" />,
+      title: "AI-Powered Curation",
+      description: "Advanced GPT-4 technology understands your music preferences and mood"
+    },
+    {
+      icon: <Zap className="h-6 w-6" />,
+      title: "Instant Generation",
+      description: "Generate personalized playlists in seconds with natural language prompts"
+    },
+    {
+      icon: <Users className="h-6 w-6" />,
+      title: "100M+ Songs",
+      description: "Access to Spotify's entire catalog for perfect track discovery"
+    }
+  ]
+
+  const examples = [
+    "Upbeat songs for morning workout",
+    "Chill indie rock for studying",
+    "Road trip classics from the 80s",
+    "Romantic dinner jazz",
+    "High-energy dance party",
+    "Melancholy rainy day vibes"
+  ]
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      {/* Header */}
+      <header className="container mx-auto px-4 py-6">
+        <nav className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Music className="h-8 w-8 text-primary" />
+            <span className="text-2xl font-bold">Playlistly</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            {status === "loading" ? (
+              <div className="h-10 w-20 animate-pulse bg-muted rounded-md" />
+            ) : (
+              <Button onClick={() => signIn("spotify")} size="lg">
+                Get Started
+              </Button>
+            )}
+          </div>
+        </nav>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {/* Hero Section */}
+      <main className="container mx-auto px-4 py-12 md:py-20">
+        <div className="text-center space-y-8 max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-4"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <Badge variant="secondary" className="px-4 py-2">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Powered by GPT-4
+            </Badge>
+
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+              Create Perfect
+              <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                {" "}Playlists{" "}
+              </span>
+              with AI
+            </h1>
+
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
+              Just describe your mood, activity, or vibe. Our AI will curate the perfect Spotify playlist
+              tailored to your exact request in seconds.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            Read our docs
-          </a>
+            <Button
+              size="lg"
+              className="px-8 py-3 text-lg"
+              onClick={() => signIn("spotify")}
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Start Creating
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+
+            <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+              <Headphones className="w-5 h-5 mr-2" />
+              See Examples
+            </Button>
+          </motion.div>
+
+          {/* Example Prompts */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="space-y-4"
+          >
+            <p className="text-sm text-muted-foreground">Try prompts like:</p>
+            <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
+              {examples.map((example, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="px-3 py-2 text-sm hover:bg-secondary/50 transition-colors cursor-pointer"
+                >
+                  "{example}"
+                </Badge>
+              ))}
+            </div>
+          </motion.div>
         </div>
+
+        {/* Features Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-20 md:mt-32"
+        >
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold">Why Choose Playlistly?</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Combining the power of AI with Spotify's vast music library for unparalleled playlist creation
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {features.map((feature, index) => (
+              <Card key={index} className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader>
+                  <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-4">
+                    {feature.icon}
+                  </div>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base">
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* CTA Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="mt-20 md:mt-32 text-center"
+        >
+          <Card className="max-w-2xl mx-auto bg-gradient-to-r from-primary/5 to-purple-500/5 border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-2xl md:text-3xl">Ready to discover your next favorite playlist?</CardTitle>
+              <CardDescription className="text-lg">
+                Connect your Spotify account and start creating AI-curated playlists in minutes
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <Button
+                size="lg"
+                className="px-12 py-3 text-lg"
+                onClick={() => signIn("spotify")}
+              >
+                <Heart className="w-5 h-5 mr-2" />
+                Connect Spotify
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="container mx-auto px-4 py-8 mt-20 border-t">
+        <div className="text-center text-sm text-muted-foreground">
+          <p>© 2024 Playlistly. Made with ❤️ for music lovers everywhere.</p>
+          <p className="mt-2">Powered by OpenAI GPT-4 and Spotify Web API</p>
+        </div>
       </footer>
     </div>
-  );
+  )
 }
