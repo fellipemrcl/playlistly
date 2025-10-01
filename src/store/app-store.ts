@@ -13,7 +13,7 @@ interface AppStore extends AppState {
 export const useAppStore = create<AppStore>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set) => ({
         user: null,
         isLoading: false,
         currentGeneration: null,

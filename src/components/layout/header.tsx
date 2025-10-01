@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Music } from "lucide-react"
@@ -21,10 +22,10 @@ export function Header() {
       <div className="container flex h-14 max-w-screen-2xl items-center">
         {/* Logo */}
         <div className="mr-4 flex">
-          <a className="mr-4 flex items-center space-x-2 lg:mr-6" href="/">
+          <Link className="mr-4 flex items-center space-x-2 lg:mr-6" href="/">
             <Music className="h-6 w-6" />
             <span className="font-bold">Playlistly</span>
-          </a>
+          </Link>
         </div>
 
         {/* Navigation */}

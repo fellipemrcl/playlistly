@@ -130,7 +130,7 @@ export default function LandingPage() {
                   variant="outline"
                   className="px-3 py-2 text-sm hover:bg-secondary/50 transition-colors cursor-pointer"
                 >
-                  "{example}"
+                  &ldquo;{example}&rdquo;
                 </Badge>
               ))}
             </div>
@@ -147,7 +147,7 @@ export default function LandingPage() {
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl md:text-4xl font-bold">Why Choose Playlistly?</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Combining the power of AI with Spotify's vast music library for unparalleled playlist creation
+              Combining the power of AI with Spotify&apos;s vast music library for unparalleled playlist creation
             </p>
           </div>
 

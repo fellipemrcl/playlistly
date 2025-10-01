@@ -5,9 +5,8 @@ import { useSession } from "next-auth/react"
 import { Header } from "@/components/layout/header"
 import { PlaylistGenerator } from "@/components/features/playlist-generator"
 import { PlaylistResult } from "@/components/features/playlist-result"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Music, Clock, Users, AlertCircle } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Music, Users, AlertCircle } from "lucide-react"
 import { PlaylistGenerationRequest, PlaylistGenerationResponse } from "@/types"
 import { toast } from "sonner"
 import { redirect } from "next/navigation"
@@ -72,7 +71,7 @@ export default function DashboardPage() {
   }
 
   const handleCreatePlaylist = async (customName?: string, customDescription?: string, selectedAlternatives?: { [key: string]: string }) => {
-    if (!currentGeneration?.spotifyTracks.length && !selectedAlternatives) return
+    if (!currentGeneration || !currentGeneration.spotifyTracks.length) return
 
     setIsCreatingPlaylist(true)
     try {
@@ -111,6 +110,13 @@ export default function DashboardPage() {
       }
 
       const playlist = await response.json()
+
+      // Update current generation with the created playlist (includes cover image)
+      setCurrentGeneration(prev => prev ? {
+        ...prev,
+        createdPlaylist: playlist
+      } : null)
+
       toast.success("Playlist created successfully!")
 
       // Open Spotify playlist

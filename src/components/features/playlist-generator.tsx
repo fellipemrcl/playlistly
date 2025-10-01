@@ -135,7 +135,7 @@ export function PlaylistGenerator({
                       <SelectItem value="casual">😎 Casual (songs that hit different, vibes for today)</SelectItem>
                       <SelectItem value="poetic">📖 Poetic (whispers of autumn rain, dancing with shadows)</SelectItem>
                       <SelectItem value="minimalist">⚪ Minimalist (focus, chill, morning)</SelectItem>
-                      <SelectItem value="vintage">🎞️ Vintage (summer of '85, retro dreams)</SelectItem>
+                      <SelectItem value="vintage">🎞️ Vintage (summer of &apos;85, retro dreams)</SelectItem>
                       <SelectItem value="edgy">🔥 Edgy (main character energy, midnight rebellion)</SelectItem>
                       <SelectItem value="classic">🎩 Classic (Evening Jazz Collection, Road Trip Classics)</SelectItem>
                     </SelectContent>
