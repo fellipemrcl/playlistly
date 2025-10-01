@@ -3,15 +3,17 @@ import { SpotifyTrack, SpotifyPlaylist, AIGeneratedSong, SongWithAlternatives } 
 
 export class SpotifyService {
   private client: SpotifyApi
+  private accessToken: string
 
   constructor(accessToken: string) {
+    this.accessToken = accessToken
+
     // Create an AccessToken object
     const token: AccessToken = {
       access_token: accessToken,
       token_type: 'Bearer',
       expires_in: 3600, // Default expiration
-      refresh_token: '', // Will be handled by NextAuth
-      scope: ''
+      refresh_token: '' // Will be handled by NextAuth
     }
 
     this.client = SpotifyApi.withAccessToken(
@@ -39,7 +41,8 @@ export class SpotifyService {
 
   async searchTrack(query: string, limit: number = 1): Promise<SpotifyTrack[]> {
     try {
-      const results = await this.client.search(query, ['track'], 'US', limit)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const results = await this.client.search(query, ['track'], 'US', limit as any)
 
       return results.tracks.items.map((track): SpotifyTrack => ({
         id: track.id,
@@ -262,36 +265,31 @@ export class SpotifyService {
 
   private calculateMatchScore(track: SpotifyTrack, aiSong: AIGeneratedSong): number {
     let score = 0
-    let factors = 0
 
     // Title similarity (most important - 40% weight)
     const titleSim = this.calculateStringSimilarity(track.name.toLowerCase(), aiSong.title.toLowerCase())
     score += titleSim * 0.4
-    factors++
 
     // Artist similarity (30% weight)
     const artistSim = Math.max(...track.artists.map(artist =>
       this.calculateStringSimilarity(artist.name.toLowerCase(), aiSong.artist.toLowerCase())
     ))
     score += artistSim * 0.3
-    factors++
 
     // Album similarity (15% weight) if available
     if (aiSong.album && aiSong.album !== 'Unknown') {
       const albumSim = this.calculateStringSimilarity(track.album.name.toLowerCase(), aiSong.album.toLowerCase())
       score += albumSim * 0.15
-      factors++
     }
 
     // Year proximity (10% weight) if available
     if (aiSong.year && track.album) {
       // Extract year from album or use a reasonable default
-      const trackYear = this.extractYearFromTrack(track)
+      const trackYear = this.extractYearFromTrack()
       if (trackYear) {
         const yearDiff = Math.abs(trackYear - aiSong.year)
         const yearScore = Math.max(0, 1 - yearDiff / 10) // Penalize by decade
         score += yearScore * 0.1
-        factors++
       }
     }
 
@@ -368,7 +366,7 @@ export class SpotifyService {
             return track
           }
         }
-      } catch (error) {
+      } catch {
         continue
       }
     }
@@ -376,7 +374,7 @@ export class SpotifyService {
     return null
   }
 
-  private extractYearFromTrack(track: SpotifyTrack): number | null {
+  private extractYearFromTrack(): number | null {
     // This would need more implementation to extract year from Spotify track data
     // For now, return null as we don't have release date in our SpotifyTrack interface
     return null
@@ -472,11 +470,72 @@ export class SpotifyService {
     }
   }
 
+  /**
+   * Upload a custom cover image to a Spotify playlist
+   * @param playlistId Spotify playlist ID
+   * @param imageUrl URL of the image to download and upload
+   * @returns Success boolean
+   */
+  async uploadPlaylistCoverImage(playlistId: string, imageUrl: string): Promise<boolean> {
+    try {
+      console.log(`📸 Downloading cover image from: ${imageUrl}`)
+
+      // Download the image
+      const imageResponse = await fetch(imageUrl)
+      if (!imageResponse.ok) {
+        console.error('Failed to download image:', imageResponse.status)
+        return false
+      }
+
+      // Convert to buffer
+      const arrayBuffer = await imageResponse.arrayBuffer()
+      const buffer = Buffer.from(arrayBuffer)
+
+      // Convert to base64 (Spotify requires JPEG format, max 256KB)
+      const base64Image = buffer.toString('base64')
+
+      // Check size (Spotify max is 256KB)
+      const sizeInKB = Buffer.byteLength(base64Image, 'base64') / 1024
+      if (sizeInKB > 256) {
+        console.warn(`⚠️ Image too large: ${sizeInKB.toFixed(2)}KB (max 256KB)`)
+        return false
+      }
+
+      console.log(`✅ Image downloaded: ${sizeInKB.toFixed(2)}KB`)
+
+      // Upload to Spotify using raw fetch (SDK might not support this endpoint)
+      const uploadResponse = await fetch(
+        `https://api.spotify.com/v1/playlists/${playlistId}/images`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+            'Content-Type': 'image/jpeg'
+          },
+          body: base64Image
+        }
+      )
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text()
+        console.error('Failed to upload cover image:', uploadResponse.status, errorText)
+        return false
+      }
+
+      console.log(`✅ Cover image uploaded to playlist: ${playlistId}`)
+      return true
+    } catch (error) {
+      console.error('Error uploading playlist cover:', error)
+      return false
+    }
+  }
+
   async createPlaylist(
     name: string,
     description: string,
     tracks: SpotifyTrack[],
-    isPublic: boolean = false
+    isPublic: boolean = false,
+    coverImageUrl?: string
   ): Promise<SpotifyPlaylist> {
     try {
       // Get current user ID
@@ -499,8 +558,13 @@ export class SpotifyService {
 
         for (let i = 0; i < trackUris.length; i += batchSize) {
           const batch = trackUris.slice(i, i + batchSize)
-          await this.client.playlists.addItemsToPlaylist(playlist.id, batch)
+          await this.client.playlists.addItemsToPlaylist(playlist.id, batch, undefined)
         }
+      }
+
+      // Upload cover image if provided
+      if (coverImageUrl) {
+        await this.uploadPlaylistCoverImage(playlist.id, coverImageUrl)
       }
 
       // Fetch the updated playlist with tracks
@@ -541,7 +605,8 @@ export class SpotifyService {
 
   async getUserPlaylists(limit: number = 20) {
     try {
-      const playlists = await this.client.currentUser.playlists.playlists(limit)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const playlists = await this.client.currentUser.playlists.playlists(limit as any)
       return playlists.items
     } catch (error) {
       console.error('Error fetching user playlists:', error)

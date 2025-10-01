@@ -41,6 +41,7 @@ export interface SpotifyPlaylist {
   external_urls: {
     spotify: string
   }
+  coverImage?: UnsplashImage
 }
 
 export interface AIGeneratedSong {
@@ -102,4 +103,27 @@ export type AppState = {
   isLoading: boolean
   currentGeneration: PlaylistGenerationResponse | null
   generationHistory: GenerationHistory[]
+}
+
+export interface UnsplashImage {
+  id: string
+  description: string
+  urls: {
+    raw: string
+    full: string
+    regular: string
+    small: string
+    thumb: string
+  }
+  links: {
+    html: string
+    download: string
+  }
+  user: {
+    name: string
+    username: string
+    portfolio_url: string
+  }
+  width: number
+  height: number
 }

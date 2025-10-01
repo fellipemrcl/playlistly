@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { createSpotifyService } from "@/lib/spotify"
-import { SpotifyTrack } from "@/types"
+import { createUnsplashService } from "@/lib/unsplash"
+import { SpotifyTrack, UnsplashImage } from "@/types"
 
 interface CreatePlaylistRequest {
   name: string
@@ -39,18 +40,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Search for Unsplash cover image if access key is available
+    let coverImage: UnsplashImage | null = null
+    let coverImageUrl: string | undefined = undefined
+    const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY
+
+    if (unsplashAccessKey) {
+      try {
+        console.log('🖼️ Searching Unsplash for matching cover image...')
+        const unsplashService = createUnsplashService(unsplashAccessKey)
+        coverImage = await unsplashService.findImageForPlaylist(
+          name,
+          description || `Created with Playlistly AI - ${new Date().toLocaleDateString()}`
+        )
+
+        if (coverImage) {
+          console.log(`✅ Found Unsplash image for playlist: ${coverImage.id}`)
+          // Use the small size for Spotify (better for 256KB limit)
+          coverImageUrl = coverImage.urls.small
+        } else {
+          console.log('ℹ️ No matching Unsplash image found')
+        }
+      } catch (unsplashError) {
+        // Log Unsplash error but don't fail playlist creation
+        console.error('Error fetching Unsplash image:', unsplashError)
+        console.log('⚠️ Continuing without cover image')
+      }
+    } else {
+      console.log('ℹ️ Unsplash access key not configured, skipping image search')
+    }
+
     // Create Spotify service
     const spotifyService = createSpotifyService(session.accessToken)
 
-    // Create the playlist on Spotify
+    // Create the playlist on Spotify (with cover image if found)
     const playlist = await spotifyService.createPlaylist(
       name,
       description || `Created with Playlistly AI - ${new Date().toLocaleDateString()}`,
       tracks,
-      isPublic
+      isPublic,
+      coverImageUrl
     )
 
-    return NextResponse.json(playlist)
+    // Add cover image to response if found
+    const playlistWithCover = coverImage
+      ? { ...playlist, coverImage }
+      : playlist
+
+    return NextResponse.json(playlistWithCover)
 
   } catch (error) {
     console.error("Error creating Spotify playlist:", error)

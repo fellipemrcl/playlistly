@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -28,8 +27,8 @@ import {
   Edit3,
   Check,
   X,
-  Plus,
-  Lightbulb
+  Lightbulb,
+  Image as ImageIcon
 } from "lucide-react"
 import { PlaylistGenerationResponse } from "@/types"
 import { formatDuration, openSpotifyLink } from "@/lib/utils"
@@ -48,7 +47,6 @@ export function PlaylistResult({
   isCreating = false
 }: PlaylistResultProps) {
   const [showNotFound, setShowNotFound] = useState(false)
-  const [isEditingName, setIsEditingName] = useState(false)
   const [customName, setCustomName] = useState(result.playlistName || "")
   const [customDescription, setCustomDescription] = useState(result.playlistDescription || "")
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -147,7 +145,7 @@ export function PlaylistResult({
                   <DialogHeader>
                     <DialogTitle>Songs Not Found on Spotify</DialogTitle>
                     <DialogDescription>
-                      These {notFoundCount} songs couldn't be found on Spotify. They may not be available
+                      These {notFoundCount} songs couldn&apos;t be found on Spotify. They may not be available
                       or might have different names.
                     </DialogDescription>
                   </DialogHeader>
@@ -201,7 +199,7 @@ export function PlaylistResult({
                         <div>
                           <p className="text-sm text-muted-foreground mb-3">Suggested alternatives:</p>
                           <div className="space-y-2">
-                            {alternative.suggestions.map((suggestion, suggestionIndex) => (
+                            {alternative.suggestions.map((suggestion) => (
                               <div
                                 key={suggestion.id}
                                 className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -218,6 +216,7 @@ export function PlaylistResult({
                               >
                                 <div className="w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0">
                                   {suggestion.album.images[0] && (
+                                    // eslint-disable-next-line @next/next/no-img-element
                                     <img
                                       src={suggestion.album.images[0].url}
                                       alt={suggestion.album.name}
@@ -270,6 +269,86 @@ export function PlaylistResult({
         </CardContent>
       </Card>
 
+      {/* Cover Image (if found) */}
+      {result.createdPlaylist?.coverImage && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Playlist Cover Inspiration
+            </CardTitle>
+            <CardDescription>
+              A beautiful image that matches your playlist vibe
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Cover Image */}
+              <div className="relative w-full sm:w-64 h-64 rounded-lg overflow-hidden bg-muted shadow-lg flex-shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={result.createdPlaylist.coverImage.urls.regular}
+                  alt={result.createdPlaylist.coverImage.description || 'Playlist cover'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Image Details */}
+              <div className="flex-1 space-y-3">
+                {result.createdPlaylist.coverImage.description && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Description</p>
+                    <p className="text-sm">{result.createdPlaylist.coverImage.description}</p>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Photo by</p>
+                  <a
+                    href={result.createdPlaylist.coverImage.user.portfolio_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium hover:underline"
+                  >
+                    {result.createdPlaylist.coverImage.user.name}
+                  </a>
+                  <span className="text-sm text-muted-foreground"> on </span>
+                  <a
+                    href="https://unsplash.com?utm_source=playlistly&utm_medium=referral"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium hover:underline"
+                  >
+                    Unsplash
+                  </a>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={() => window.open(result.createdPlaylist?.coverImage?.links.html, '_blank')}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    View on Unsplash
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={() => window.open(result.createdPlaylist?.coverImage?.urls.full, '_blank')}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Track List */}
       {result.spotifyTracks.length > 0 && (
         <Card>
@@ -295,6 +374,7 @@ export function PlaylistResult({
                       {/* Album Art */}
                       <div className="relative w-12 h-12 rounded-md overflow-hidden bg-muted flex-shrink-0 shadow-sm">
                         {track.album.images[0] && (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={track.album.images[0].url}
                             alt={track.album.name}
@@ -373,7 +453,7 @@ export function PlaylistResult({
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground">
-                AI suggested: "{result.playlistName || "Generated Playlist"}"
+                AI suggested: &ldquo;{result.playlistName || "Generated Playlist"}&rdquo;
               </p>
             </div>
 
@@ -388,7 +468,7 @@ export function PlaylistResult({
                 className="w-full resize-none"
               />
               <p className="text-xs text-muted-foreground">
-                AI suggested: "{result.playlistDescription || "Your AI-curated playlist"}"
+                AI suggested: &ldquo;{result.playlistDescription || "Your AI-curated playlist"}&rdquo;
               </p>
             </div>
           </div>
